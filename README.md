@@ -2,12 +2,12 @@
 
 Dominion specs:
 
-Variables:
+#Variables
 action_space: every valid action List[NumActions, Action1, Action2, ...]
 observation_space: the size of how you're representing states e.g in the firefighter example
 this would be 5 cause the states were represented as a 5-tuple
 
-Functions:
+#Functions
 
 Step: takes in an action and returns the following things
 1) Observation: The new board state ()
