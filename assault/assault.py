@@ -1,14 +1,15 @@
 import gym
 from ddqnagent import DQNAgent
+from dqnutils import preprocess_observation
 import numpy as np
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 EPISODES = 4000
-RENDER = True
+RENDER = False
 
 
 if __name__ == "__main__":
-    env = gym.make('CartPole-v1')
+    env = gym.make('Assault-v0')
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
     agent = DQNAgent(state_size, action_size)
@@ -17,13 +18,14 @@ if __name__ == "__main__":
 
     for e in range(EPISODES):
         state = env.reset()
-        state = np.reshape(state, [1, state_size])
+        state = preprocess_observation(state)
         for time in range(500):
-            # env.render()
+            if RENDER:
+                env.render()
             action = agent.act(state)
             next_state, reward, done, _ = env.step(action)
             reward = reward if not done else -10
-            next_state = np.reshape(next_state, [1, state_size])
+            next_state = preprocess_observation(next_state)
             agent.remember(state, action, reward, next_state, done)
             state = next_state
             if done:

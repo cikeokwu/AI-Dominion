@@ -7,5 +7,5 @@ def preprocess_observation(obs):
     img = img.mean(axis=2)  # to greyscale”
     img[img == color] = 0   # improve contrast
     img = (img - 128) / 128 - 1   # normalize from -1. to 1.
-    return img.reshape(88, 80, 1)
+    return img.reshape(1,88, 80, 1)
 
