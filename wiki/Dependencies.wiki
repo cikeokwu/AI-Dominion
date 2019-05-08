@@ -1,9 +1,0 @@
-= Project Dependencies =
-
-==Python==
-Python 2.6 - http://www.python.org/download/
-==PyQt==
-PyQt 4.4 - http://www.riverbankcomputing.co.uk/software/pyqt/download
-==Curses==
-Most linux installs will come with the curses module already present.
-A windows curses module is available at http://adamv.com/dev/python/curses/

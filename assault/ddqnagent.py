@@ -2,7 +2,7 @@ import random
 import numpy as np
 from collections import deque
 from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten
+from keras.layers import Dense, Conv2D, Flatten, Permute
 from keras.optimizers import Adam
 from keras.initializers import VarianceScaling
 from keras import backend as K
@@ -30,7 +30,7 @@ class DQNAgent:
                 https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
     """
 
-    def _huber_loss(self, y_true, y_pred, clip_delta=1.0):
+    def huber_loss(self, y_true, y_pred, clip_delta=1.0):
         error = y_true - y_pred
         cond  = K.abs(error) <= clip_delta
 
@@ -43,9 +43,8 @@ class DQNAgent:
         # Neural Net for Deep-Q learning Model
         intializer = VarianceScaling()
         model = Sequential()
-        # model.add(Dense(24, input_dim=self.state_size, activation='relu'))
-        # model.add(Dense(24, activation='relu'))
-        model.add(Conv2D(input_shape=(88,80,1),filters=32,kernel_size=(8,8),strides=(4,4),padding="same",activation="relu",
+        model.add(Permute((2, 3, 1), input_shape=(88, 80, 1)))
+        model.add(Conv2D(filters=32,kernel_size=(8,8),strides=(4,4),padding="same",activation="relu",
         kernel_initializer=intializer))
         model.add(Conv2D(filters=64, kernel_size=(4, 4), strides=(2,2), padding="same", activation="relu",
                          kernel_initializer=intializer))
@@ -54,7 +53,7 @@ class DQNAgent:
         model.add(Flatten())
         model.add(Dense(512, input_shape=(11,11,64),activation='relu'))
         model.add(Dense(self.action_size, activation='relu'))
-        model.compile(loss=self._huber_loss,
+        model.compile(loss=self.huber_loss,
                       optimizer=Adam(lr=self.learning_rate))
         return model
 
