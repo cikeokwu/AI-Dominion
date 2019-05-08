@@ -70,6 +70,10 @@ parser.add_argument('--mode', choices=['train', 'test'], default='train')
 parser.add_argument('--env-name', type=str, default='BreakoutDeterministic-v4')
 parser.add_argument('--weights', type=str, default=None)
 parser.add_argument('--spange', type=int, default=0)
+parser.add_argument('--version', type=int, default=0)
+parser.add_argument('--path', type=str, default="/home/students/tirissou/trainedModel/")
+parser.add_argument('--version', type=int, default=0)
+parser.add_argument('--path', type=str, default="/home/students/tirissou/trainedModel/")
 args = parser.parse_args()
 
 # Get the environment and extract the number of actions.
@@ -111,6 +115,8 @@ policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., valu
 # policy = BoltzmannQPolicy(tau=1.)
 # Feel free to give it a try!
 
+currentpath = "{}v{}/{}/".format(args.path, args.version, args.env_name)
+
 dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
                train_interval=4, delta_clip=1., enable_dueling_network=True, dueling_type='avg')
@@ -119,9 +125,9 @@ dqn.compile(Adam(lr=.00025), metrics=[huber_loss])
 if args.mode == 'train':
     # Okay, now it's time to learn something! We capture the interrupt exception so that training
     # can be prematurely aborted. Notice that now you can use the built-in Keras callbacks!
-    weights_filename = 'dqn2_{}_weights.h5f'.format(args.env_name)
+    weights_filename = '{}dqn2_{}_v{}_weights.h5f'.format(currentpath, args.env_name, args.version)
     checkpoint_weights_filename = 'dqn_' + args.env_name + '_weights_{step}.h5f'
-    log_filename = 'dqn2_{}_log.json'.format(args.env_name)
+    log_filename = '{}dqn2_{}_v{}_log.json'.format(currentpath, args.env_name, args.version)
     callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=250000)]
     callbacks += [FileLogger(log_filename, interval=100)]
     dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000)
@@ -132,7 +138,7 @@ if args.mode == 'train':
     # Finally, evaluate our algorithm for 10 episodes.
     dqn.test(env, nb_episodes=10, visualize=False)
 elif args.mode == 'test':
-    weights_filename = 'dqn2_{}_weights.h5f'.format(args.env_name)
+    weights_filename = '{}dqn2_{}_v{}_weights.h5f'.format(currentpath, args.env_name, args.version)
     if args.weights:
         weights_filename = args.weights
     dqn.load_weights(weights_filename)
