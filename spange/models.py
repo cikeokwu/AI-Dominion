@@ -13,7 +13,7 @@ WINDOW_LENGTH = 4
 
 
 def model0(game):
-    intializer = VarianceScaling()
+    intializer = VarianceScaling(scale=2)
     model = Sequential()
     model.add(Permute((2, 3, 1), input_shape=game.input_shape))
     model.add(Conv2D(filters=32, kernel_size=(8, 8), strides=(4, 4), padding="same", activation="relu",
