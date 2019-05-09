@@ -43,7 +43,7 @@ class DQNAgent:
         # Neural Net for Deep-Q learning Model
         intializer = VarianceScaling()
         model = Sequential()
-        model.add(Permute((2, 3, 1), input_shape=(88, 80, 1)))
+        model.add(Permute((2, 3, 1), input_shape=(4,84,84)))
         model.add(Conv2D(filters=32,kernel_size=(8,8),strides=(4,4),padding="same",activation="relu",
         kernel_initializer=intializer))
         model.add(Conv2D(filters=64, kernel_size=(4, 4), strides=(2,2), padding="same", activation="relu",
@@ -56,6 +56,7 @@ class DQNAgent:
         model.compile(loss=self.huber_loss,
                       optimizer=Adam(lr=self.learning_rate))
         return model
+
 
     def update_target_model(self):
         # copy weights from model to target_model

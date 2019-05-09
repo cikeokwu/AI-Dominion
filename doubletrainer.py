@@ -23,33 +23,12 @@ INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
 
 
-def huber_loss(y_true, y_pred, clip_delta=1.0):
-    error = y_true - y_pred
-    cond = K.abs(error) <= clip_delta
-
-    squared_loss = 0.5 * K.square(error)
-    quadratic_loss = 0.5 * K.square(clip_delta) + clip_delta * (K.abs(error) - clip_delta)
-
-    return K.mean(tf.where(cond, squared_loss, quadratic_loss))
-
 class AtariProcessor(Processor):
-    def __init__(self,n_observations_per_state=4):
-        self.preprocessed_observations = deque([], maxlen=n_observations_per_state)
-
-    def combine_observations_singlechannel(self, dim_factor=0.5):
-        dimmed_observations = [obs * dim_factor ** index
-                               for index, obs in enumerate(reversed(self.preprocessed_observations))]
-        return np.max(np.array(dimmed_observations), axis=0)
-
-
     def process_observation(self, observation):
         assert observation.ndim == 3  # (height, width, channel)
         img = Image.fromarray(observation)
         img = img.resize(INPUT_SHAPE).convert('L')  # resize and convert to grayscale
         processed_observation = np.array(img)
-        assert processed_observation.shape == INPUT_SHAPE
-        self.preprocessed_observations.append(processed_observation)
-        processed_observation = self.combine_observations_singlechannel()
         assert processed_observation.shape == INPUT_SHAPE
         return processed_observation.astype('uint8')  # saves storage in experience memory
 
@@ -59,9 +38,6 @@ class AtariProcessor(Processor):
         # an `uint8` array. This matters if we store 1M observations.
         processed_batch = batch.astype('float32') / 255.
         return processed_batch
-
-    def process_reward(self, reward):
-        return np.clip(reward, -1., 1.)
 
 
 
@@ -74,8 +50,8 @@ args = parser.parse_args()
 
 # Get the environment and extract the number of actions.
 env = gym.make(args.env_name)
-np.random.seed(123)
-env.seed(123)
+np.random.seed(7)
+env.seed(7)
 nb_actions = env.action_space.n
 
 # Next, we build our model. We use the same model that was described by Mnih et al. (2015).
@@ -114,7 +90,7 @@ policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., valu
 dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
                train_interval=4, delta_clip=1.,enable_double_dqn=True)
-dqn.compile(Adam(lr=.001), metrics=["mae"])
+dqn.compile(Adam(lr=.00025), metrics=["mae"])
 
 if args.mode == 'train':
     # Okay, now it's time to learn something! We capture the interrupt exception so that training
@@ -124,7 +100,7 @@ if args.mode == 'train':
     log_filename = 'dqn1_{}_log.json'.format(args.env_name)
     callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=50000)]
     callbacks += [FileLogger(log_filename, interval=100)]
-    dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000)
+    dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000,start_step_policy=lambda x: 1, nb_max_start_steps=10)
 
     # After training is done, we save the final weights one more time.
     dqn.save_weights(weights_filename, overwrite=True)
