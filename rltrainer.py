@@ -23,7 +23,6 @@ INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
 
 
-
 class AtariProcessor(Processor):
     def process_observation(self, observation):
         assert observation.ndim == 3  # (height, width, channel)
