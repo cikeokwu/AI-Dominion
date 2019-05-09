@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-INPUT_SHAPE = (80, 80)
+INPUT_SHAPE = (84, 84)
 from rl.core import Processor
 
 from collections import deque
@@ -15,25 +15,22 @@ class AtariProcessor(Processor):
                                for index, obs in enumerate(reversed(self.preprocessed_observations))]
         return np.max(np.array(dimmed_observations), axis=0)
 
-    def process_observation(self, obs):
-        img = obs[34:194:2, ::2]  # crop and downsize
-        processed_observation = np.mean(img, axis=2).reshape(INPUT_SHAPE) / 255.0
-        assert processed_observation.shape == INPUT_SHAPE
-        self.preprocessed_observations.append(processed_observation)
-        processed_observation = self.combine_observations_singlechannel()
-        assert processed_observation.shape == INPUT_SHAPE
-        return processed_observation.astype('uint8')  # saves storage in experience memory
-
-    # def process_observation(self, observation):
-    #     assert observation.ndim == 3  # (height, width, channel)
-    #     img = Image.fromarray(observation)
-    #     img = img.resize(INPUT_SHAPE).convert('L')  # resize and convert to grayscale
-    #     processed_observation = np.array(img)
+    # def process_observation(self, obs):
+    #     img = obs[34:194:2, ::2]  # crop and downsize
+    #     processed_observation = np.mean(img, axis=2).reshape(INPUT_SHAPE) / 255.0
     #     assert processed_observation.shape == INPUT_SHAPE
     #     self.preprocessed_observations.append(processed_observation)
     #     processed_observation = self.combine_observations_singlechannel()
     #     assert processed_observation.shape == INPUT_SHAPE
     #     return processed_observation.astype('uint8')  # saves storage in experience memory
+
+    def process_observation(self, observation):
+        img = observation[34:194:2, ::2]  # crop and downsize
+        processed_observation = np.mean(img, axis=2).reshape(4,84, 84) / 255.0
+        #assert processed_observation.shape == INPUT_SHAPE
+        self.preprocessed_observations.append(processed_observation)
+        processed_observation = self.combine_observations_singlechannel()
+        return processed_observation.astype('uint8')  # saves storage in experience memory
 
     def process_state_batch(self, batch):
         # We could perform this processing step in `process_observation`. In this case, however,

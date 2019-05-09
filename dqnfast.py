@@ -1,5 +1,4 @@
 from __future__ import division
-import sys
 import argparse
 import spange.models as spm
 from types import SimpleNamespace
@@ -19,6 +18,7 @@ from rl.memory import SequentialMemory
 from rl.core import Processor
 from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
+
 INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
 
@@ -45,9 +45,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--mode', choices=['train', 'test'], default='train')
 parser.add_argument('--env-name', type=str, default='BreakoutDeterministic-v4')
 parser.add_argument('--weights', type=str, default=None)
-parser.add_argument('--spange', type=int, default=0)
-parser.add_argument('--myversion', type=int, default=0)
-parser.add_argument('--path', type=str, default="/home/students/tirissou/trainedModel/")
+parser.add_argument('--spange', type=int, default=1)
 args = parser.parse_args()
 
 # Get the environment and extract the number of actions.
@@ -89,21 +87,17 @@ policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., valu
 # policy = BoltzmannQPolicy(tau=1.)
 # Feel free to give it a try!
 
-# currentpath = "{}v{}/{}/".format(args.path, args.myversion, args.env_name)
-currentpath = args.path
-
 dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                processor=processor, nb_steps_warmup=50000, gamma=.99, target_model_update=10000,
-               train_interval=4, delta_clip=1.,enable_double_dqn=True)
+               train_interval=4, delta_clip=1.,enable_double_dqn=True,enable_dueling_network=True,dueling_type="avg")
 dqn.compile(Adam(lr=.00025), metrics=["mae"])
 
 if args.mode == 'train':
     # Okay, now it's time to learn something! We capture the interrupt exception so that training
     # can be prematurely aborted. Notice that now you can use the built-in Keras callbacks!
-    weights_filename = '{}dqn1_{}_v{}_weights.h5f'.format(currentpath, args.env_name, args.myversion)
-    checkpoint_weights_filename = 'dqn1_' + args.env_name + '_weights_{step}.h5f'
-    log_filename = '{}dqn1_{}_v{}_log.json'.format(currentpath, args.env_name, args.myversion)
-    log_filename = 'dqn1_{}_log.json'.format(args.env_name)
+    weights_filename = 'dqn3_{}_weights.h5f'.format(args.env_name)
+    checkpoint_weights_filename = 'dqn3_' + args.env_name + '_weights_{step}.h5f'
+    log_filename = 'dqn3_{}_log.json'.format(args.env_name)
     callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=50000)]
     callbacks += [FileLogger(log_filename, interval=100)]
     dqn.fit(env, callbacks=callbacks, nb_steps=1750000, log_interval=10000,start_step_policy=lambda x: 1, nb_max_start_steps=10)
@@ -114,7 +108,7 @@ if args.mode == 'train':
     # Finally, evaluate our algorithm for 10 episodes.
     dqn.test(env, nb_episodes=10, visualize=False)
 elif args.mode == 'test':
-    weights_filename = '{}dqn1_{}_v{}_weights.h5f'.format(currentpath, args.env_name, args.myversion)
+    weights_filename = 'dqn3_{}_weights.h5f'.format(args.env_name)
     if args.weights:
         weights_filename = args.weights
     dqn.load_weights(weights_filename)

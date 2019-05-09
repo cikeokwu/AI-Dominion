@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -j oe
+#PBS -o testjob.txt
+#PBS -N testjob
+#PBS -l nodes=1:ppn=10
+
+# Correct PATH
+PATH=$PATH:/home/students/tirissou/miniconda3/bin
+export PATH
+# Set up conda
+source /home/students/tirissou/condainit.sh
+
+# Go to project and run
+cd /home/students/tirissou/AI
+
