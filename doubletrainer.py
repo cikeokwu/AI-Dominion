@@ -70,8 +70,7 @@ else:
 
 print(model.summary())
 
-# Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
-# even the metrics!
+
 memory = SequentialMemory(limit=1000000, window_length=WINDOW_LENGTH)
 processor = AtariProcessor()
 
@@ -83,11 +82,7 @@ processor = AtariProcessor()
 policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=.05,
                               nb_steps=1000000)
 
-# The trade-off between exploration and exploitation is difficult and an on-going research topic.
-# If you want, you can experiment with the parameters or use a different policy. Another popular one
-# is Boltzmann-style exploration:
-# policy = BoltzmannQPolicy(tau=1.)
-# Feel free to give it a try!
+
 
 # currentpath = "{}v{}/{}/".format(args.path, args.myversion, args.env_name)
 currentpath = args.path
@@ -98,8 +93,6 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
 dqn.compile(Adam(lr=.00025), metrics=["mae"])
 
 if args.mode == 'train':
-    # Okay, now it's time to learn something! We capture the interrupt exception so that training
-    # can be prematurely aborted. Notice that now you can use the built-in Keras callbacks!
     weights_filename = '{}dqn1_{}_v{}_weights.h5f'.format(currentpath, args.env_name, args.myversion)
     checkpoint_weights_filename = 'dqn1_' + args.env_name + '_weights_{step}.h5f'
     log_filename = '{}dqn1_{}_v{}_log.json'.format(currentpath, args.env_name, args.myversion)
